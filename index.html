@@ -139,7 +139,9 @@
     { id: "suan-rot-fai", name: "Suan Rot Fai",
       blurb: "Animals, flowers and trees from the park near home." },
     { id: "portraits",    name: "Portraits",
-      blurb: "Watercolor portraits of pets and family." }
+      blurb: "Watercolor portraits of pets and family." },
+    { id: "studies",      name: "Watercolor Studies",
+      blurb: "Birds, ponds and small seasonal pieces." }
   ];
 
   // ============================================================
@@ -147,36 +149,32 @@
   //  collection = one of the ids above.
   // ============================================================
   const works = [
-    {
-      file: "images/landscape-1.jpg",
-      title: "Untitled I",
-      collection: "landscapes",
-      medium: "Acrylic",
-      size: "40 × 30 cm",
-      year: 2026,
-      notes: ""
-    },
-    {
-      file: "images/suanrotfai-1.jpg",
-      title: "Untitled II",
-      collection: "suan-rot-fai",
-      medium: "Acrylic",
-      size: "30 × 30 cm",
-      year: 2026,
-      notes: ""
-    },
-    {
-      file: "images/portrait-1.jpg",
-      title: "Untitled III",
-      collection: "portraits",
-      medium: "Watercolor",
-      size: "A4",
-      year: 2026,
-      notes: ""
-    }
+    { file: "images/desert-saguaro.jpg", title: "Desert Saguaro", collection: "landscapes",
+      medium: "Acrylic", size: "", year: 2026, notes: "" },
+    { file: "images/sunflower-mountain.jpg", title: "Sunflower Mountain", collection: "landscapes",
+      medium: "Acrylic", size: "", year: 2026, notes: "" },
+    { file: "images/anteater-trees.jpg", title: "Among the Trees", collection: "suan-rot-fai",
+      medium: "Acrylic", size: "", year: 2026, notes: "" },
+    { file: "images/dog-sunflowers.jpg", title: "Sunflower Pup", collection: "portraits",
+      medium: "Watercolor", size: "", year: 2026, notes: "" },
+    { file: "images/pomeranian-bun.jpg", title: "Pomeranian in a Bun", collection: "portraits",
+      medium: "Watercolor", size: "", year: 2026, notes: "" },
+    { file: "images/white-cat.jpg", title: "White Cat", collection: "portraits",
+      medium: "Watercolor", size: "", year: 2026, notes: "" },
+    { file: "images/two-cats-plants.jpg", title: "Two Cats and Plants", collection: "portraits",
+      medium: "Watercolor", size: "", year: 2026, notes: "" },
+    { file: "images/family-by-the-lake.jpg", title: "By the Lake", collection: "portraits",
+      medium: "Watercolor", size: "", year: 2026, notes: "" },
+    { file: "images/kookaburra.jpg", title: "Kookaburra", collection: "studies",
+      medium: "Watercolor", size: "", year: 2026, notes: "" },
+    { file: "images/lily-pond.jpg", title: "Lily Pond", collection: "studies",
+      medium: "Watercolor", size: "", year: 2026, notes: "" },
+    { file: "images/christmas-tree.jpg", title: "Christmas Tree", collection: "studies",
+      medium: "Watercolor", size: "", year: 2025, notes: "" }
   ];
   // ============================================================
 
+  const metaOf = w => [w.medium, w.size, w.year].filter(Boolean).join(" · ");
   const gallery = document.getElementById("gallery");
   const filters = document.getElementById("filters");
   const blurb = document.getElementById("blurb");
@@ -207,7 +205,7 @@
           <img src="${w.file}" alt="${w.title}, ${w.medium.toLowerCase()} painting" loading="lazy">
           <figcaption>
             <div class="title">${w.title}</div>
-            <div class="meta">${w.medium} · ${w.size} · ${w.year}</div>
+            <div class="meta">${metaOf(w)}</div>
           </figcaption>`;
         fig.addEventListener("click", () => openLightbox(w));
         gallery.appendChild(fig);
@@ -219,7 +217,7 @@
     img.src = w.file;
     img.alt = w.title;
     document.getElementById("lb-title").textContent = w.title;
-    document.getElementById("lb-meta").textContent = `${w.medium} · ${w.size} · ${w.year}`;
+    document.getElementById("lb-meta").textContent = metaOf(w);
     document.getElementById("lb-notes").textContent = w.notes || "";
     lb.classList.add("open");
   }
