@@ -84,12 +84,26 @@
 
   /* Lightbox */
   .lightbox {
-    position: fixed; inset: 0; background: rgba(247,245,240,0.97);
+    position: fixed; inset: 0; background: var(--bg);
     display: none; align-items: center; justify-content: center;
-    flex-direction: column; padding: 32px; z-index: 10; cursor: zoom-out;
-  }
+    flex-direction: column; padding: 32px; z-index: 10; }
   .lightbox.open { display: flex; }
-  .lightbox img { max-width: 100%; max-height: 80vh; object-fit: contain; }
+  .lb-stage {
+    width: 100%; height: 80vh; overflow: hidden; display: flex;
+    align-items: center; justify-content: center; touch-action: none;
+  }
+  .lb-stage img {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+    transform-origin: 0 0; cursor: zoom-in; user-select: none;
+    -webkit-user-drag: none; will-change: transform;
+  }
+  .lb-stage img.zoomed { cursor: grab; }
+  .lb-stage img.dragging { cursor: grabbing; }
+  .lb-close {
+    position: absolute; top: 18px; right: 24px; background: none; border: none;
+    font-size: 2rem; line-height: 1; color: var(--ink); cursor: pointer;
+  }
+  .lb-hint { color: var(--muted); font-size: 0.75rem; margin-top: 4px; }
   .lightbox .caption { margin-top: 20px; text-align: center; }
   .lightbox .notes { color: var(--muted); font-size: 0.9rem; max-width: 560px; margin-top: 6px; }
 
@@ -119,11 +133,13 @@
 <main id="gallery"></main>
 
 <div class="lightbox" id="lightbox">
-  <img id="lb-img" alt="">
+  <button class="lb-close" id="lb-close" aria-label="Close">×</button>
+  <div class="lb-stage" id="lb-stage"><img id="lb-img" alt="" draggable="false"></div>
   <div class="caption">
     <div class="title" id="lb-title"></div>
     <div class="meta" id="lb-meta"></div>
     <div class="notes" id="lb-notes"></div>
+    <div class="lb-hint">Scroll or pinch to zoom · drag to move · double-click to reset</div>
   </div>
 </div>
 
@@ -222,10 +238,78 @@
     document.getElementById("lb-title").textContent = w.title;
     document.getElementById("lb-meta").textContent = metaOf(w);
     document.getElementById("lb-notes").textContent = w.notes || "";
+    reset();
     lb.classList.add("open");
   }
-  lb.addEventListener("click", () => lb.classList.remove("open"));
-  document.addEventListener("keydown", e => { if (e.key === "Escape") lb.classList.remove("open"); });
+  // ---- zoom & pan ----
+  const stage = document.getElementById("lb-stage");
+  const zimg = document.getElementById("lb-img");
+  let z = { s: 1, x: 0, y: 0 };
+  const apply = () => {
+    zimg.style.transform = `translate(${z.x}px, ${z.y}px) scale(${z.s})`;
+    zimg.classList.toggle("zoomed", z.s > 1);
+  };
+  const reset = () => { z = { s: 1, x: 0, y: 0 }; apply(); };
+  function zoomAt(cx, cy, factor) {
+    const r = zimg.getBoundingClientRect();
+    const ns = Math.min(8, Math.max(1, z.s * factor));
+    const k = ns / z.s;
+    const px = cx - r.left, py = cy - r.top;   // point inside image (screen px)
+    z.x -= px * (k - 1); z.y -= py * (k - 1); z.s = ns;
+    if (z.s === 1) { z.x = 0; z.y = 0; }
+    apply();
+  }
+  stage.addEventListener("wheel", e => {
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.0015));
+  }, { passive: false });
+  zimg.addEventListener("dblclick", e => {
+    z.s > 1 ? reset() : zoomAt(e.clientX, e.clientY, 2.5);
+  });
+  // pointer drag + pinch
+  const pts = new Map(); let last = null, pinch = null;
+  let downOnBg = false, moved = false;
+  stage.addEventListener("pointerdown", e => {
+    downOnBg = (e.target === stage); moved = false;
+    if (e.target === zimg) stage.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 1) last = { x: e.clientX, y: e.clientY };
+    if (pts.size === 2) {
+      const [a, b] = [...pts.values()];
+      pinch = Math.hypot(a.x - b.x, a.y - b.y);
+    }
+    zimg.classList.add("dragging");
+  });
+  stage.addEventListener("pointermove", e => {
+    if (!pts.has(e.pointerId)) return;
+    moved = true;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 2 && pinch) {
+      const [a, b] = [...pts.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, d / pinch);
+      pinch = d;
+    } else if (pts.size === 1 && last && z.s > 1) {
+      z.x += e.clientX - last.x; z.y += e.clientY - last.y;
+      last = { x: e.clientX, y: e.clientY }; apply();
+    }
+  });
+  const up = e => {
+    pts.delete(e.pointerId);
+    if (pts.size < 2) pinch = null;
+    if (pts.size === 1) last = [...pts.values()][0]; else last = null;
+    if (!pts.size) zimg.classList.remove("dragging");
+  };
+  stage.addEventListener("pointerup", up);
+  stage.addEventListener("pointercancel", up);
+
+  const closeLb = () => { lb.classList.remove("open"); reset(); };
+  document.getElementById("lb-close").addEventListener("click", closeLb);
+  // click on empty background (not the image) closes
+  lb.addEventListener("click", e => {
+    if (e.target === lb || (e.target === stage && downOnBg && !moved)) closeLb();
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeLb(); });
 
   document.getElementById("year").textContent = new Date().getFullYear();
   render("all");
