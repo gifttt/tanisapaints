@@ -81,6 +81,11 @@
     font-size: 1.25rem; font-weight: 500;
   }
   .meta { color: var(--muted); font-size: 0.82rem; }
+  .sold {
+    display: inline-block; margin-left: 8px; padding: 0 7px;
+    font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #9a3b2e; border: 1px solid #d9b3aa; border-radius: 2px; vertical-align: 2px;
+  }
 
   /* Lightbox */
   .lightbox {
@@ -168,28 +173,28 @@
   //  collection = one of the ids above.
   // ============================================================
   const works = [
-    { file: "images/desert-saguaro.jpg", title: "Desert Saguaro", collection: "landscapes",
-      medium: "Acrylic", size: "", year: 2026, notes: "" },
-    { file: "images/sunflower-mountain.jpg", title: "Sunflower Mountain", collection: "landscapes",
-      medium: "Acrylic", size: "", year: 2026, notes: "" },
+    { file: "images/desert-saguaro.jpg", title: "Superstition Mountains", collection: "landscapes",
+      medium: "Acrylic", size: "60 × 50 cm", year: 2026, notes: "" },
+    { file: "images/sunflower-mountain.jpg", title: "Khao Jin Lae and Sunflower Fields", collection: "landscapes",
+      medium: "Acrylic", size: "40 × 30 cm", sold: true, year: 2026, notes: "" },
     { file: "images/anteater-trees.jpg", title: "Among the Trees", collection: "suan-rot-fai",
-      medium: "Acrylic", size: "", year: 2026, notes: "" },
+      medium: "Acrylic", size: "20 × 20 cm", year: 2026, notes: "" },
     { file: "images/dog-sunflowers.jpg", title: "Sunflower Pup", collection: "portraits",
-      medium: "Watercolor", size: "", year: 2026, notes: "" },
+      medium: "Watercolor", size: "A5", year: 2026, notes: "" },
     { file: "images/pomeranian-bun.jpg", title: "Pomeranian in a Bun", collection: "portraits",
-      medium: "Watercolor", size: "", year: 2026, notes: "" },
+      medium: "Watercolor", size: "A4", year: 2026, notes: "" },
     { file: "images/white-cat.jpg", title: "White Cat", collection: "portraits",
-      medium: "Watercolor", size: "", year: 2026, notes: "" },
-    { file: "images/two-cats-plants.jpg", title: "Two Cats and Plants", collection: "portraits",
-      medium: "Watercolor", size: "", year: 2026, notes: "" },
+      medium: "Watercolor", size: "A4", year: 2026, notes: "" },
+    { file: "images/two-cats-plants.jpg", title: "Mila and Micho on the Balcony", collection: "portraits",
+      medium: "Watercolor", size: "A4", year: 2026, notes: "" },
     { file: "images/family-by-the-lake.jpg", title: "By the Lake", collection: "portraits",
-      medium: "Watercolor", size: "", year: 2026, notes: "" },
+      medium: "Watercolor", size: "A4", year: 2026, notes: "" },
     { file: "images/kookaburra.jpg", title: "Kookaburra", collection: "studies",
-      medium: "Watercolor", size: "", year: 2026, notes: "" },
+      medium: "Watercolor", size: "A4", year: 2026, notes: "" },
     { file: "images/lily-pond.jpg", title: "Lily Pond", collection: "studies",
-      medium: "Watercolor", size: "", year: 2026, notes: "" },
+      medium: "Watercolor", size: "A4", year: 2026, notes: "" },
     { file: "images/christmas-tree.jpg", title: "Christmas Tree", collection: "studies",
-      medium: "Watercolor", size: "", year: 2025, notes: "" }
+      medium: "Watercolor", size: "A5", year: 2025, notes: "" }
   ];
   // ============================================================
 
@@ -223,7 +228,7 @@
         fig.innerHTML = `
           <img src="${w.file}" alt="${w.title}, ${w.medium.toLowerCase()} painting" loading="lazy">
           <figcaption>
-            <div class="title">${w.title}</div>
+            <div class="title">${w.title}${w.sold ? '<span class="sold">Sold</span>' : ''}</div>
             <div class="meta">${metaOf(w)}</div>
           </figcaption>`;
         fig.addEventListener("click", () => openLightbox(w));
@@ -236,7 +241,7 @@
     img.src = w.file;
     img.alt = w.title;
     document.getElementById("lb-title").textContent = w.title;
-    document.getElementById("lb-meta").textContent = metaOf(w);
+    document.getElementById("lb-meta").textContent = metaOf(w) + (w.sold ? " · Sold" : "");
     document.getElementById("lb-notes").textContent = w.notes || "";
     reset();
     lb.classList.add("open");
